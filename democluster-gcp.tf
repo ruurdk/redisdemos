@@ -10,10 +10,12 @@ variable "dns_base" {}
 variable "managed_zone" {}
 
 provider "google" {
-  project = "redislabs-sales-project"
+  project = "central-beach-194106"
   region  = "europe-west4"
   zone    = "europe-west4-a"
 }
+
+// Machines
 
 resource "google_compute_instance" "vm_instance-1" {
   name         = "${var.machine_base_name}-vm1"
@@ -34,7 +36,7 @@ resource "google_compute_instance" "vm_instance-1" {
   }
 
   metadata = {
-      enable_oslogin = "false"
+      enable-oslogin = "false"
       ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
 
@@ -60,7 +62,8 @@ resource "google_compute_instance" "vm_instance-2" {
   }
 
    metadata = {
-      enable_oslogin = "false"
+      enable-oslogin = "false"
+      ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   } 
 
   tags = ["http-server", "https-server"]
@@ -85,7 +88,8 @@ resource "google_compute_instance" "vm_instance-3" {
   }
 
   metadata = {
-      enable_oslogin = "false"
+      enable-oslogin = "false"
+      ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
 
   tags = ["http-server", "https-server"]
@@ -110,19 +114,40 @@ resource "google_compute_instance" "vm_instance-client" {
   }
 
   metadata = {
-      enable_oslogin = "false"
+      enable-oslogin = "false"
+      ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
 
   tags = ["http-server", "https-server"]
 }
+
+// Networking
 
 resource "google_compute_network" "vpc_network" {
   name                    = "${var.network_base_name}-vpc"
   auto_create_subnetworks = "true"
 }
 
+resource "google_compute_firewall" "firewall" {
+    name = "${var.network_base_name}-firewall"
+    network = google_compute_network.vpc_network.self_link
+
+    allow {
+        protocol = "icmp"
+    }
+
+    allow {
+        protocol = "tcp"
+        ports = ["80", "443", "22", "1000-30000"]
+    }
+
+    source_ranges = ["0.0.0.0/0"]
+}
+
+// DNS setup
+
 resource "google_dns_record_set" "ns1" {
-    name = "ns1.${var.cluster_name}.${var.dns_base}"
+    name = "ns1.${var.cluster_name}.${var.dns_base}."
     type = "A"
     ttl = 300
 
@@ -131,7 +156,7 @@ resource "google_dns_record_set" "ns1" {
 }
 
 resource "google_dns_record_set" "ns2" {
-    name = "ns2.${var.cluster_name}.${var.dns_base}"
+    name = "ns2.${var.cluster_name}.${var.dns_base}."
     type = "A"
     ttl = 300
 
@@ -140,7 +165,7 @@ resource "google_dns_record_set" "ns2" {
 }
 
 resource "google_dns_record_set" "ns3" {
-    name = "ns3.${var.cluster_name}.${var.dns_base}"
+    name = "ns3.${var.cluster_name}.${var.dns_base}."
     type = "A"
     ttl = 300
 
@@ -149,10 +174,10 @@ resource "google_dns_record_set" "ns3" {
 }
 
 resource "google_dns_record_set" "clusterdns" {
-    name = "${var.cluster_name}.${var.dns_base}"
+    name = "${var.cluster_name}.${var.dns_base}."
     type = "NS"
     ttl = 300
 
     managed_zone = var.managed_zone
-    rrdatas = [ "ns1.${var.cluster_name}.${var.dns_base}", "ns2.${var.cluster_name}.${var.dns_base}", "ns3.${var.cluster_name}.${var.dns_base}" ]
+    rrdatas = [ "ns1.${var.cluster_name}.${var.dns_base}.", "ns2.${var.cluster_name}.${var.dns_base}.", "ns3.${var.cluster_name}.${var.dns_base}." ]
 }
