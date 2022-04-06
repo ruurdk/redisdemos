@@ -138,7 +138,12 @@ resource "google_compute_firewall" "firewall" {
 
     allow {
         protocol = "tcp"
-        ports = ["80", "443", "22", "1000-30000"]
+        ports = ["80", "443", "22", "53", "1000-30000"]
+    }
+
+    allow {
+        protocol = "udp"
+        ports = ["53"]
     }
 
     source_ranges = ["0.0.0.0/0"]
@@ -189,6 +194,13 @@ output "cluster_ips" {
         google_compute_instance.vm_instance-3.network_interface[0].access_config[0].nat_ip,
     ]
 }
+output "master_internal_ip" {
+    value = google_compute_instance.vm_instance-1.network_interface[0].network_ip
+}
+
 output "client_ip" {
     value = google_compute_instance.vm_instance-client.network_interface[0].access_config[0].nat_ip
+}
+output "clustername" {
+    value = trim(google_dns_record_set.clusterdns.name, ".")
 }
