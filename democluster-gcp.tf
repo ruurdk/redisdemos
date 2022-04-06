@@ -39,7 +39,7 @@ resource "google_compute_instance" "vm_instance-1" {
       enable-oslogin = "false"
       ssh-keys = "${var.gce_ssh_user}:${file(var.gce_ssh_pub_key_file)}"
   }
-
+  
   tags = ["http-server", "https-server"]
 }
 
@@ -180,4 +180,15 @@ resource "google_dns_record_set" "clusterdns" {
 
     managed_zone = var.managed_zone
     rrdatas = [ "ns1.${var.cluster_name}.${var.dns_base}.", "ns2.${var.cluster_name}.${var.dns_base}.", "ns3.${var.cluster_name}.${var.dns_base}." ]
+}
+
+output "cluster_ips" {
+    value = [
+        google_compute_instance.vm_instance-1.network_interface[0].access_config[0].nat_ip,
+        google_compute_instance.vm_instance-2.network_interface[0].access_config[0].nat_ip,
+        google_compute_instance.vm_instance-3.network_interface[0].access_config[0].nat_ip,
+    ]
+}
+output "client_ip" {
+    value = google_compute_instance.vm_instance-client.network_interface[0].access_config[0].nat_ip
 }
