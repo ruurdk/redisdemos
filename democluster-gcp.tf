@@ -4,15 +4,22 @@ variable "machine_type" {}
 variable "machine_base_name" {}
 variable "network_base_name" {}
 variable "gce_ssh_user" {}
+variable "gce_ssh_private_key_file" {}
 variable "gce_ssh_pub_key_file" {}
 variable "cluster_name" {}
+variable "cluster_account" {}
+variable "cluster_password" {}
 variable "dns_base" {}
 variable "managed_zone" {}
+variable "redis_enterprise_download_url" {}
+variable "gcp_project_id" {}
+variable "gcp_region" {}
+variable "gcp_zone" {}
 
 provider "google" {
-  project = "central-beach-194106"
-  region  = "europe-west4"
-  zone    = "europe-west4-a"
+  project = var.gcp_project_id
+  region  = var.gcp_region
+  zone    = var.gcp_zone
 }
 
 // Machines
@@ -197,10 +204,24 @@ output "cluster_ips" {
 output "master_internal_ip" {
     value = google_compute_instance.vm_instance-1.network_interface[0].network_ip
 }
-
 output "client_ip" {
     value = google_compute_instance.vm_instance-client.network_interface[0].access_config[0].nat_ip
 }
 output "clustername" {
     value = trim(google_dns_record_set.clusterdns.name, ".")
+}
+output "cluster_account" {
+    value = var.cluster_account
+}
+output "cluster_password" {
+    value = var.cluster_password
+}
+output "redis_enterprise_download_url" {
+    value = var.redis_enterprise_download_url
+}
+output "gce_ssh_user" {
+    value = var.gce_ssh_user
+}
+output "gce_ssh_private_key_file" {
+    value = var.gce_ssh_private_key_file
 }
